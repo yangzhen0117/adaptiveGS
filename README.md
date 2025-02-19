@@ -1,8 +1,8 @@
-# AdaptiveGS
+# adaptiveGS
 
 This program implements a Stacking ensemble learning method for model selection based on the PR index (PCC/RMSE)  for  genomic selection. Genomic selection (GS) is a crucial technique in modern molecular breeding, and stacking ensemble learning (SEL) has proven to be a powerful GS approach by integrating multiple base learners (BLs) to capture the complex relationships between genotypes and phenotypes. However, selecting the optimal BLs remains a challenge due to the lack of an effective and unified framework.
 
-**AdaptiveGS** is an adaptive and explainable data-driven BL selection strategy designed to enhance GS accuracy. It employs the **PR index**, which combines the **Pearson correlation coefficient (PCC)** and **root mean square error (RMSE)**, to pre-screen and select the top-performing BLs for the stacking GS framework. This strategy ensures that the most suitable BLs are chosen for different species and traits, improving overall prediction performance.
+**adaptiveGS** is an adaptive and explainable data-driven BL selection strategy designed to enhance GS accuracy. It employs the **PR index**, which combines the **Pearson correlation coefficient (PCC)** and **root mean square error (RMSE)**, to pre-screen and select the top-performing BLs for the stacking GS framework. This strategy ensures that the most suitable BLs are chosen for different species and traits, improving overall prediction performance.
 
 **Citation**
 Zhen Yang, Mei Song, Quanrui Rao, Shanghui Zhang, Zhongzheng Zhang, Chenyang Wang, Wenjia Li, Ran Qin, Chunhua Zhao, Yongzhen Wu, Han Sun, Guangchen Liu, Fa Cui, AdaptiveGS: an explainable genomic selection framework based on adaptive stacking ensemble machine learning, 2025,in submiting.
