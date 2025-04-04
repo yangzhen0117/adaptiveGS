@@ -45,17 +45,6 @@ MLP, CNN, and Transformer models are trained and key metrics such as RMSE, PCC, 
 ## Software Requirements
 The codes used in this paper were compiled on Python 3.8. The versions of other packages are, specifically:
 
-The codes used in this paper were compiled on Python 3.10.4. All codes were written using Jupyter Notebook. To run the codes, install Jupyter Noterbook/JupyterLab first. The versions of other packages are, specifically:
-
-numpy==1.22.3
-pandas==1.4.3
-plotly==5.9.0
-matplotlib==3.5.1
-sklearn==1.1.1
-xgboost==1.6.1
-seaborn==0.11.2
-scipy==1.7.3
-
 python==3.8.0;
 numpy==1.22.4;
 pandas==2.0.3;
