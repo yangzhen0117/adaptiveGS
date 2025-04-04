@@ -44,13 +44,13 @@ MLP, CNN, and Transformer models are trained and key metrics such as RMSE, PCC, 
 
 ## Software Requirements
 The codes used in this paper were compiled on Python 3.8. The versions of other packages are, specifically:
-'<python==3.8.0>'
-numpy==1.22.4
-pandas==2.0.3
-scikit-learn==1.3.0
-lightgbm==4.3.0
-xgboost==2.0.3
-scipy==1.10.1
-memory-profiler==0.61.0
-torch==1.9.0
-psutil==5.9.0
+python==3.8.0;
+numpy==1.22.4;
+pandas==2.0.3;
+scikit-learn==1.3.0;
+lightgbm==4.3.0;
+xgboost==2.0.3;
+scipy==1.10.1;
+memory-profiler==0.61.0;
+torch==1.9.0;
+psutil==5.9.0;
