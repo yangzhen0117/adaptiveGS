@@ -19,3 +19,7 @@ xgboost==2.0.0
 torch==2.2.0+cu118
 torchaudio==2.2.0+cu118
 torchvision==0.17.0+cu118
+
+# R environment: R-4.2.3
+rpy2 == 3.5.17
+# refer to https://rpy2.github.io/doc/latest/html/introduction.html

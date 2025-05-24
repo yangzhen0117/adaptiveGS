@@ -79,23 +79,21 @@ def get_data(dataset_id_t, y_temp_col):
              raise ValueError(f"After merging, subsetting and dropping NaNs, no valid data remains for {dataset_id_t}_{y_temp_col} or columns are missing.")
 
         # Separate features (X) and target (y)
-        X = concat_data[x_col] # Features as DataFrame
-        y = concat_data[y_temp_col] # Target as Series
+        X = concat_data[x_col] 
+        y = concat_data[y_temp_col] 
 
         if X.shape[0] < 2 or y.shape[0] < 2:
              raise ValueError(f"Not enough data points after preprocessing for {dataset_id_t}_{y_temp_col}. Need at least 2 samples.")
 
 
-        # Split data into train and test sets (returns DataFrames/Series)
+        # Split data into train and test sets 
         X_train_df, X_test_df, y_train_s, y_test_s = train_test_split(
             X, y, test_size=0.2, shuffle=True, random_state=42
         )
 
         # Data Standardization: Only standardize y (phenotype)
         scaler_y = StandardScaler()
-        # fit_transform expects 2D array, .values converts Series to NumPy array, reshape ensures 2D
         y_train_scaled = scaler_y.fit_transform(y_train_s.values.reshape(-1, 1)).flatten()
-        # Use the scaler fitted on training data to transform test data
         y_test_scaled = scaler_y.transform(y_test_s.values.reshape(-1, 1)).flatten()
 
         # Convert X  to NumPy arrays (float32)
@@ -315,14 +313,16 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support
     freeze_support()
 
-    save_path = 'checkpoints'
+    save_path = 'checkpoints' # Path of checkpoints and results 
+    
     # Get unique dataset identifiers (e.g., 'gy') from pheno_dict keys
     temp_dataset_ids = list({k.replace('_pheno', '') for k in pheno_dict.keys()})
 
-    cv_folds_optuna = 2
-    n_trials_optuna = 1
-    cv_folds_stacking = 2
-    base_select_model_n = 3
+    n_trials_optuna = 20        # Number of Optuna trials per model
+    cv_folds_optuna = 10        # CV folds for Optuna
+    base_select_model_n = 3     # Top N models for stacking
+    cv_folds_stacking = 10      # CV folds for stacking
+    
     
     for dataset_id_t in temp_dataset_ids:
         # Iterate over phenotypes for this dataset
@@ -378,7 +378,7 @@ if __name__ == '__main__':
                     n_trials=n_trials_optuna,
                     scoring=make_scorer(pcc_scorer_optuna, greater_is_better=True), # Maximize PCC on scaled CV data
                     random_state=42,
-                    timeout=3600 # 1 hour timeout per model tuning
+                    timeout=3600*3 # 3 hour timeout per model tuning
                 )
 
                 gc.collect()

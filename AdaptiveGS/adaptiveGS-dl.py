@@ -34,9 +34,9 @@ pheno_dict = {
 
 # Original hyperparameters
 ORIGINAL_HYPERPARAMS = {
-    'CNN': {'num_conv_layers': 3, 'dropout': 0.5, 'lr': 1e-3, 'num_epochs': 100, 'batch_size': 64, 'initial_out_channels': 32},
-    'MLP': {'num_hidden_layers': 2, 'dropout': 0.5, 'lr': 1e-3, 'num_epochs': 100, 'batch_size': 64},
-    'Transformer': {'num_layers': 2, 'dropout': 0.1, 'lr': 1e-3, 'num_epochs': 100, 'batch_size': 64, 'd_model': 64, 'nhead': 4}
+    'CNN': {'num_conv_layers': 3, 'dropout': 0.5, 'lr': 1e-3, 'num_epochs': 150, 'batch_size': 64, 'initial_out_channels': 32},
+    'MLP': {'num_hidden_layers': 2, 'dropout': 0.5, 'lr': 1e-3, 'num_epochs': 150, 'batch_size': 64},
+    'Transformer': {'num_layers': 2, 'dropout': 0.1, 'lr': 1e-3, 'num_epochs': 150, 'batch_size': 64, 'd_model': 64, 'nhead': 4}
 }
 
 # --------------------------- Data Preprocessing ---------------------------
@@ -54,8 +54,7 @@ def get_data(dataset_id_t, y_temp_col):
         pheno_data = pd.read_csv(pheno_path)
         # geno_data = pd.read_csv(geno_path,nrows=20,usecols=range(10))
         # pheno_data = pd.read_csv(pheno_path,nrows=20)
-        # Merge data (inner join based on the first column)
-        # This assumes the first column is the sample identifier in both files
+        # Make sure the first column is the sample identifier in both files
         concat_data = pd.merge(
             pheno_data,
             geno_data,
@@ -73,11 +72,10 @@ def get_data(dataset_id_t, y_temp_col):
              raise ValueError(f"After merging and dropping NaNs, no valid data remains for {dataset_id_t}_{y_temp_col}")
 
         # Separate features (X) and target (y)
-        X = concat_data[x_col] # Features as DataFrame
-        y = concat_data[y_temp_col] # Target as Series
+        X = concat_data[x_col]
+        y = concat_data[y_temp_col]
 
         # Split data into train and test sets
-        # Returns Pandas DataFrames/Series
         X_train_df, X_test_df, y_train_s, y_test_s = train_test_split(X, y, test_size=0.2, shuffle=True, random_state=42)
 
         # Data Standardization
@@ -88,14 +86,10 @@ def get_data(dataset_id_t, y_temp_col):
         # Use the scaler fitted on training data to transform test data
         y_test_scaled = scaler_y.transform(y_test_s.values.reshape(-1, 1)).flatten()
 
-        # Convert X (features) to NumPy arrays but DO NOT standardize them
         X_train_np = X_train_df.values
         X_test_np = X_test_df.values
 
-
         print(f"Data loaded, cleaned, and phenotype standardized. X_train shape: {X_train_np.shape}, y_train_scaled shape: {y_train_scaled.shape}")
-
-        # Return unscaled X arrays, scaled y arrays, and the fitted y scaler
         return X_train_np, X_test_np, y_train_scaled, y_test_scaled, scaler_y
 
     except Exception as e:
@@ -104,7 +98,6 @@ def get_data(dataset_id_t, y_temp_col):
 # --------------------------- Model Definitions ---------------------------
 # CNN Model
 class CNNModel(nn.Module):
-    # Added initial_out_channels parameter for tuning base channel size
     def __init__(self, input_size, num_conv_layers=3, dropout=0.5, initial_out_channels=32):
         super().__init__()
         self.conv_layers = nn.ModuleList()
@@ -157,18 +150,14 @@ class CNNModel(nn.Module):
 
         for i, conv in enumerate(self.conv_layers):
             x = torch.relu(conv(x))
-            # Apply pooling after each conv/relu block
             if x.size(-1) > 1: # Only pool if the dimension is > 1
                  x = self.pool(x)
-
-
+                 
         # Flatten the output from convolutional layers
         # x shape is now [B, final_out_channels, spatial_dim_after_pooling]
         x = torch.flatten(x, start_dim=1) # [B, final_out_channels * spatial_dim_after_pooling]
-
-        # Pass through fully connected layers
         x = torch.relu(self.fc1(x))
-        x = self.dropout(x) # Apply dropout
+        x = self.dropout(x) 
         x = torch.relu(self.fc2(x))
         x = self.fc3(x) # Output layer (size 1)
 
@@ -176,7 +165,6 @@ class CNNModel(nn.Module):
 
 # MLP Model
 class MLPModel(nn.Module):
-    # Added num_hidden_layers and dropout parameters
     def __init__(self, input_size, num_hidden_layers=2, dropout=0.5):
         super().__init__()
         self.fc_layers = nn.ModuleList()
@@ -206,17 +194,13 @@ class MLPModel(nn.Module):
 
 # Transformer Model
 class TransformerModel(nn.Module):
-    # Added num_layers, dropout, d_model, nhead parameters for tuning
     def __init__(self, input_size, num_layers=2, dropout=0.1, d_model=64, nhead=4):
         super().__init__()
-        # Input size must be mapped to d_model
         self.embedding = nn.Linear(input_size, d_model)
 
-        # Ensure d_model is divisible by nhead
         if d_model % nhead != 0:
              raise ValueError(f"d_model ({d_model}) must be divisible by nhead ({nhead})")
 
-        # Transformer Encoder Layer definition
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model, nhead=nhead, dropout=dropout, batch_first=True
         )
@@ -247,7 +231,6 @@ class TransformerModel(nn.Module):
         return x
 
 # --------------------------- Hyperparameter Distributions ---------------------------
-# Define parameter distributions for Optuna tuning
 # Includes learning rate, dropout, batch size, and model-specific parameters
 models_to_train = {
     'CNN': (CNNModel, {
@@ -322,7 +305,6 @@ class PyTorchRegressor(BaseEstimator, RegressorMixin):
             total_loss = 0
             num_batches = 0
             for batch_x, batch_y in train_loader:
-                # batch_x, batch_y are already on self.device
                 optimizer.zero_grad()
                 outputs = self.model(batch_x)
                 # Use squeeze() to match shape [batch_size] vs [batch_size, 1]
@@ -343,7 +325,6 @@ class PyTorchRegressor(BaseEstimator, RegressorMixin):
                 total_loss += loss.item()
                 num_batches += 1
 
-            # Optional: print epoch loss
             # if num_batches > 0:
             #     avg_loss = total_loss / num_batches
             #     print(f'Epoch [{epoch + 1}/{self.num_epochs}], Loss: {avg_loss:.4f}')
@@ -353,9 +334,9 @@ class PyTorchRegressor(BaseEstimator, RegressorMixin):
         # print(f"Training finished in {self.training_time:.2f} seconds.") 
 
         # Clean up memory after training
-        del X_tensor, y_tensor, train_dataset, train_loader # Delete data tensors and loader
-        torch.cuda.empty_cache() # Clear CUDA cache
-        gc.collect() # Run Python garbage collector
+        del X_tensor, y_tensor, train_dataset, train_loader 
+        torch.cuda.empty_cache() 
+        gc.collect() 
 
         return self
 
@@ -368,8 +349,8 @@ class PyTorchRegressor(BaseEstimator, RegressorMixin):
         # Convert test data to tensor and move to device
         X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
 
-        self.model.eval() # Set model to evaluation mode
-        with torch.no_grad(): # Disable gradient calculation
+        self.model.eval() 
+        with torch.no_grad(): 
             y_pred_tensor = self.model(X_tensor)
             # Return scaled prediction as NumPy array
             y_pred_scaled = y_pred_tensor.squeeze(-1).cpu().numpy()
@@ -401,12 +382,10 @@ class PyTorchRegressor(BaseEstimator, RegressorMixin):
 
     def set_params(self, **params):
         # Set parameters provided by OptunaSearchCV
-        # Do not attempt to set model_class, input_size, or scaler_y via set_params
         valid_params = self.get_params(deep=True) # Get all potential params including model_specific
 
         for param, value in params.items():
             if param in ['model_class', 'input_size', 'scaler_y']:
-                 # These are structural/contextual and cannot be changed after initialization
                  continue
             elif hasattr(self, param):
                 # Update core parameters like lr, num_epochs, batch_size
@@ -416,10 +395,6 @@ class PyTorchRegressor(BaseEstimator, RegressorMixin):
                  self.model_specific_params[param] = value
             # else:
             #     # print(f"Warning: Parameter '{param}' not recognized by PyTorchRegressor.set_params") # Optional warning
-
-
-        # The model instance self.model is NOT updated here.
-        # It will be re-initialized with the new parameters in the next call to fit().
         return self
 
 # --------------------------- Performance Evaluation ---------------------------
@@ -429,12 +404,9 @@ def measure_performance(model, X_test, y_test_scaled, metrics):
     X_test is unscaled features, y_test_scaled is scaled target.
     Predictions are inversely scaled before metrics calculation.
     """
-    # Ensure y_test_scaled is 1D numpy array
+
     y_test_scaled = np.asarray(y_test_scaled).flatten()
 
-    # Use memory_usage context manager for prediction memory profiling
-    # interval: how often to measure, timeout: max time for prediction
-    # retval=True ensures the return value of model.predict is captured
     # model.predict returns scaled predictions
     mem_profile = memory_usage((model.predict, (X_test,)), interval=0.1, timeout=600, retval=True)
     if isinstance(mem_profile, tuple):
@@ -445,7 +417,7 @@ def measure_performance(model, X_test, y_test_scaled, metrics):
         # Profiling failed (e.g., timeout), call predict directly
         print("Warning: memory_usage profiling failed or timed out during prediction.")
         y_pred_scaled = model.predict(X_test)
-        max_mem = 0.0 # Indicate profiling failure
+        max_mem = 0.0 
 
     # --- Inverse standardize predictions and true values ---
     scaler_y = model.scaler_y
@@ -508,8 +480,8 @@ def measure_performance(model, X_test, y_test_scaled, metrics):
     except Exception:
         r2 = 0.0 # R2 calculation failed
 
-    # Handle division by zero for PCC/RMSE
-    pcc_rmse = pcc / rmse if rmse != 0 else (0.0 if pcc == 0 else np.inf * np.sign(pcc))
+    # # Handle division by zero for PCC/RMSE
+    # pcc_rmse = pcc / rmse if rmse != 0 else (0.0 if pcc == 0 else np.inf * np.sign(pcc))
 
     metrics.update({
         'Training Time (seconds)': model.training_time,
@@ -519,7 +491,7 @@ def measure_performance(model, X_test, y_test_scaled, metrics):
         'PCC': pcc,
         'MAE': mae,
         'R2': r2,
-        'PCC/RMSE': pcc_rmse
+        # 'PCC/RMSE': pcc_rmse
     })
     return metrics
 
@@ -529,16 +501,12 @@ def pcc_scorer(y_true_scaled, y_pred_scaled):
     Operates on the SCALED values provided during cross-validation.
     Handles zero variance cases.
     """
-    # Ensure inputs are numpy arrays and 1D
     y_true_scaled = np.asarray(y_true_scaled).flatten()
     y_pred_scaled = np.asarray(y_pred_scaled).flatten()
 
-    # Handle empty inputs
     if len(y_true_scaled) == 0 or len(y_pred_scaled) == 0:
          return 0.0 # Return 0 score for empty data
 
-    # Check for constant arrays using var() with a small epsilon
-    # This is crucial because pearsonr fails on constant data
     if np.var(y_true_scaled) < 1e-9 or np.var(y_pred_scaled) < 1e-9:
         return 0.0 # Variance too small considered invalid data, correlation is 0
 
@@ -546,10 +514,8 @@ def pcc_scorer(y_true_scaled, y_pred_scaled):
     try:
         corr = pearsonr(y_true_scaled, y_pred_scaled)[0]
     except Exception:
-        # Catch potential errors in pearsonr (e.g. if inputs have inf/nan after num_to_nan)
         corr = np.nan
 
-    # Return correlation, handle NaN/Inf (OptunaSearchCV expects finite float)
     # Returning -1.0 penalizes trials that result in invalid correlations
     return corr if np.isfinite(corr) else -1.0
 
@@ -569,8 +535,6 @@ def save_model(model, dataset_id, model_name, metrics, save_path):
     else:
         print(f"Warning: PyTorch model for {model_name} in {dataset_id} is None, cannot save state_dict.")
 
-    # Save metadata, including the final parameters used for training
-    # Get parameters from the PyTorchRegressor instance
     final_params = model.get_params()
     # Filter out non-serializable params like 'model_class' and 'scaler_y' (which is a type/object)
     serializable_params = {k: v for k, v in final_params.items() if k not in ['model_class'] and not isinstance(v, (type, StandardScaler))}
@@ -601,7 +565,6 @@ def save_model(model, dataset_id, model_name, metrics, save_path):
 
 # --------------------------- Main Process ---------------------------
 if __name__ == "__main__":
-    # Required for multiprocessing (used by OptunaSearchCV or in general)
     from multiprocessing import freeze_support
     freeze_support()
 
@@ -613,14 +576,13 @@ if __name__ == "__main__":
 
     # Define the params
     # set the optunacv search params
-    n_splits = 10
-    n_trials = 2
+    n_splits = 10 # Number of cross-validation folds during hyperparameter optimization for base models
+    n_trials = 20 # Number of iterations for hyperparameter optimization
     # save path
     results_base_path = "checkpoints" 
     os.makedirs(results_base_path, exist_ok=True)
 
     # Iterate through all datasets and target variables
-    # Uncomment the outer loops to process all tasks defined in pheno_dict
     for dataset_id_t in [k.replace('_pheno', '') for k in dataset_paths if '_pheno' in k]:
         pheno_key = f"{dataset_id_t}_pheno"
         if pheno_key not in pheno_dict:
@@ -651,12 +613,10 @@ if __name__ == "__main__":
                 print(f"\n--- Optimizing {model_name} ---")
 
                 # Define base estimator for OptunaSearchCV
-                # Pass input_size and initial/placeholder values for model_specific_params
-                # Pass the fitted scaler_y to the base estimator
                 base_estimator = PyTorchRegressor(
                     model_class=model_cls,
                     input_size=input_size,
-                    num_epochs=30, # Use fewer epochs for faster tuning trials (e.g., 20-50)
+                    num_epochs=50, 
                     scaler_y=scaler_y, # Pass the scaler
                     # Pass potential model specific params needed by __init__
                     **{k: (param_dist[k].low if hasattr(param_dist[k], 'low') else (param_dist[k].choices[0] if hasattr(param_dist[k], 'choices') else None)) for k in param_dist if k not in ['lr', 'num_epochs', 'batch_size']}
@@ -664,9 +624,7 @@ if __name__ == "__main__":
 
                 try:
                     # Explicitly create study object with a unique name per task+model
-                    # Pruner helps stop unpromising trials early
                     study_name = f"{task_data.replace('/', '_').replace('.', '_')}_{model_name}_study" # Create a safe study name
-                    # Load existing study if available to resume optimization
                     study = optuna.create_study(direction='maximize', study_name=study_name, pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=5), load_if_exists=True)
 
                     print(f"Optuna study '{study_name}' created or loaded.")
@@ -693,10 +651,8 @@ if __name__ == "__main__":
 
                 except Exception as e:
                     print(f"Optimization for {model_name} failed with exception: {str(e)}")
-                    # Fallback to original parameters if optimization fails
                     print(f"Falling back to original parameters for {model_name}: {ORIGINAL_HYPERPARAMS.get(model_name, {})}")
                     best_params = ORIGINAL_HYPERPARAMS.get(model_name, {})
-                    # Ensure best_params is at least an empty dict if model_name wasn't in ORIGINAL_HYPERPARAMS
                     if not best_params:
                         print(f"Warning: No original parameters found for {model_name}. Skipping final training.")
                         continue # Skip final training if no params are available
@@ -709,9 +665,6 @@ if __name__ == "__main__":
 
                 print(f"\nTraining final {model_name} model for {final_num_epochs} epochs with lr={final_lr}, batch_size={final_batch_size} and other best params...")
 
-                # Create the final model instance with determined parameters
-                # Filter out lr, num_epochs, batch_size as they are handled separately in PyTorchRegressor __init__
-                # Pass the fitted scaler_y to the final model instance
                 model_specific_final_params = {k: v for k, v in best_params.items() if k not in ['lr', 'num_epochs', 'batch_size']}
 
                 final_model = PyTorchRegressor(
