@@ -16,7 +16,9 @@ from rpy2.rinterface_lib import callbacks
 warnings.filterwarnings('ignore')
 
 # Set R environment encoding for rpy2
-callbacks._CCHAR_ENCODING = 'utf-8'
+callbacks._CCHAR_ENCODING = 'utf-8' #'gbk' 
+
+
 
 # Dataset paths
 dataset_paths = {
@@ -167,7 +169,7 @@ class RModelRunner:
             if np.sum(np.isnan(predictions)) > 0:
                 print(f"Warning: NaN predictions for {method_name}.")
             
-            memory_used_mib = self.get_memory_usage_mib() - initial_memory
+            memory_used_mib = np.abs(self.get_memory_usage_mib() - initial_memory)
             
             return predictions, train_time, predict_time, memory_used_mib
             
@@ -180,7 +182,10 @@ if __name__ == '__main__':
     
     dataset_ids = [k.replace('_pheno', '') for k in dataset_paths.keys() if '_pheno' in k]
     
-    models_to_evaluate = ['BayesB', 'GBLUP', 'RRBLUP']
+    models_to_evaluate = ['BayesB',
+                          # 'GBLUP',
+                          # 'RRBLUP',
+                          ]
     
     checkpoints_save_path = 'checkpoints'
     for dataset_id in dataset_ids:

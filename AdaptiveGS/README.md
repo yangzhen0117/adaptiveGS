@@ -4,7 +4,7 @@ This program implements a Stacking ensemble learning method for model selection 
 
 **AdaptiveGS** is an adaptive and explainable data-driven BL selection strategy designed to enhance GS accuracy. It employs the **PR index**, which combines the **Pearson correlation coefficient (PCC)** and **root mean square error (RMSE)**, to pre-screen and select the top-performing BLs for the stacking GS framework. This strategy ensures that the most suitable BLs are chosen for different species and traits, improving overall prediction performance.
 
-**Citation** Zhen Yang, Mei Song,Xianggeng Huang, Quanrui Rao, Shanghui Zhang, Zhongzheng Zhang, Chenyang Wang, Wenjia Li, Ran Qin, Chunhua Zhao, Yongzhen Wu, Han Sun, Guangchen Liu, Fa Cui, AdaptiveGS: an explainable genomic selection framework based on adaptive stacking ensemble machine learning, 2025,in submiting.
+**Citation** Zhen Yang, Mei Song, Xianggeng Huang, Quanrui Rao, Shanghui Zhang, Zhongzheng Zhang, Chenyang Wang, Wenjia Li, Ran Qin, Chunhua Zhao, Yongzhen Wu, Han Sun, Guangchen Liu, Fa Cui, AdaptiveGS: an explainable genomic selection framework based on adaptive stacking ensemble machine learning, 2025,in submiting.
 
 **Suggestions and Problem Feedback** liuguangchen@ldu.edu.cn
 
@@ -54,9 +54,42 @@ pip install scikit-learn pandas numpy lightgbm xgboost shap matplotlib seaborn r
 ```
 
 * **For `adaptiveGS_linear_models.py` (R-based models):**
-  * You must have **R installed** on your system, our experiment based on`r-4.2.3`
+  
+  * You must have **R installed** on your system. Our experiments were conducted with `R-4.2.3`. It's recommended to use this version or newer for compatibility.`
+  
   * Set the `R_HOME` environment variable to your R installation path.
-  * Ensure the R packages used by the models (e.g.,`BWGS`, `BGLR`, `rrBLUP`) are installed within your R environment.
+  
+  * Ensure the R packages used by the models (`BWGS`, `rrBLUP`) are installed within your R environment, a brief installation introduction is as follows:
+    
+    - **`BWGS`**:
+      
+      - **Installation:**
+        
+        ```R
+        install.packages("BWGS")
+        ```
+      
+      - **Source:** [BWGS GitHub Repository](https://github.com/vangiangtran/BWGS?tab=readme-ov-file)
+      
+      - **Primary Citation :**
+        
+        - Charmet G, Tran LG, Auzanneau J, Rincent R, Bouchet S. BWGS: A R package for genomic selection and its application to a wheat breeding programme. PLoS One. 2020 Apr 23;15(4):e0232422. doi: 10.1371/journal.pone.0232422. PMID: 32240182; PMCID: PMC7141418.*
+    
+    - **`rrBLUP`**:
+      
+      - 
+      
+      - **Installation:**
+        
+        ```R
+        install.packages("rrBLUP")
+        ```
+      
+      - **Source:** [rrBLUP CRAN Page](https://cran.r-project.org/web/packages/rrBLUP/index.html)
+      
+      - **Primary Citation:**
+        
+        - Endelman, J. B. (2011). *Ridge Regression and Other Kernels for Genomic Selection with R Package rrBLUP. The Plant Genome Journal, 4(3), 250.* doi:10.3835/plantgenome2011.08.0024](https://doi.org/10.3835/plantgenome2011.08.0024)
 
 ### 3. Directory Structure
 

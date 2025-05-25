@@ -253,7 +253,9 @@ def get_model_configs():
             }
         },
         'LightGBM': {
-            'model': lgb.LGBMRegressor(random_state=42, verbosity=-1, n_jobs=-1),
+            'model': lgb.LGBMRegressor(random_state=42, verbosity=-1, n_jobs=-1,
+                                       # device='gpu', # If GPU is available
+                                       ),
             'param_distributions': {
                 'num_leaves': optuna.distributions.IntDistribution(20, 150),
                 'max_depth': optuna.distributions.IntDistribution(3, 20),
@@ -267,7 +269,9 @@ def get_model_configs():
             }
         },
         'XGBoost': {
-            'model': xgb.XGBRegressor(random_state=42, n_jobs=-1, objective='reg:squarederror'),
+            'model': xgb.XGBRegressor(random_state=42, n_jobs=-1, objective='reg:squarederror'
+                                      # tree_method="hist", device="cuda", # If GPU is available
+                                      ),
             'param_distributions': {
                 'max_depth': optuna.distributions.IntDistribution(3, 20),
                 'learning_rate': optuna.distributions.FloatDistribution(0.01, 0.3, log=True),

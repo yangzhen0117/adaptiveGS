@@ -1,5 +1,10 @@
 RRBLUP <- function(X_train, y_train, X_test) {
-  # Load or install rrBLUP package
+  
+  # This function implements the Ridge Regression Best Linear Unbiased Prediction (RRBLUP) method.
+  # It relies on the 'rrBLUP' R package.
+  # Package Source: https://cran.r-project.org/web/packages/rrBLUP/index.html
+  # Endelman J B. Ridge regression and other kernels for genomic selection with R package rrBLUP[J]. The plant genome, 2011, 4(3).
+  
   if (!require("rrBLUP", character.only = TRUE)) {
     install.packages("rrBLUP", repos = "https://cloud.r-project.org")
   }

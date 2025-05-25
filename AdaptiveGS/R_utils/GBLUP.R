@@ -1,4 +1,11 @@
 GBLUP <- function(X_train, y_train, X_test) {
+  # This function implements the Genomic Best Linear Unbiased Prediction (GBLUP) method.
+  # It relies on the 'BWGS' R package.
+  # Package Source: https://cran.r-project.org/web/packages/BWGS/index.html
+  # Charmet G, Tran LG, Auzanneau J, Rincent R, Bouchet S. BWGS: A R package for genomic selection and its application to a wheat breeding programme. PLoS One. 2020 Apr 23;15(4):e0232422. doi: 10.1371/journal.pone.0232422. PMID: 32240182; PMCID: PMC7141418.
+  if (!require("BWGS", character.only = TRUE)) {
+        install.packages("BWGS", repos = "https://cloud.r-project.org")
+  }
   library(BWGS)
   set.seed(42)
   
@@ -27,7 +34,7 @@ GBLUP <- function(X_train, y_train, X_test) {
   # Calculate training duration (seconds)
   train_duration <- as.numeric(difftime(Sys.time(), train_start_time, units = "secs"))
   
-  # Process results structure
+  # Process results
   if (is.list(result) && "predictions" %in% names(result)) {
     predictions <- result$predictions
     model <- result
@@ -36,18 +43,17 @@ GBLUP <- function(X_train, y_train, X_test) {
     model <- list(predictions = result)  
   }
   
-  # Record prediction start time (if prediction is separate step)
   predict_start_time <- Sys.time()
   
-  # Calculate prediction duration (assuming prediction is integrated in bwgs.predict)
+  # Calculate prediction duration 
   predict_duration <- as.numeric(difftime(Sys.time(), predict_start_time, units = "secs"))
   
   # Return results with timing metrics
   result <- list(
     model = model,
     predictions = predictions,
-    train_time = train_duration,  # Training time in seconds
-    predict_time = predict_duration  # Prediction time in seconds
+    train_time = train_duration,  
+    predict_time = predict_duration 
   )
   return(result)
 }
