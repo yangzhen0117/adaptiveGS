@@ -77,7 +77,6 @@ pip install scikit-learn pandas numpy lightgbm xgboost shap matplotlib seaborn r
     
     - **`rrBLUP`**:
       
-      - 
       
       - **Installation:**
         
